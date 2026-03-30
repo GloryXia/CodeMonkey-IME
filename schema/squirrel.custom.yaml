@@ -1,0 +1,117 @@
+# squirrel.custom.yaml
+# macOS Squirrel 外观配置 + App 级策略
+
+patch:
+  # ============================================================
+  # 候选窗外观
+  # ============================================================
+  style:
+    color_scheme: hybrid_dark
+    horizontal: true               # 横排候选
+    font_point: 16                 # 候选字号
+    label_font_point: 14           # 序号字号
+    comment_font_point: 13         # 注释字号
+    font_face: "PingFang SC"       # 中文字体
+    label_font_face: "SF Pro Text" # 序号字体
+    corner_radius: 8               # 圆角
+    border_height: 6               # 边框上下间距
+    border_width: 6                # 边框左右间距
+    line_spacing: 5                # 候选行间距
+    spacing: 10                    # 候选间距
+    candidate_list_layout: linear  # 线性布局
+
+  # ============================================================
+  # 配色方案 - 暗色主题
+  # ============================================================
+  preset_color_schemes:
+    hybrid_dark:
+      name: "Hybrid Dark"
+      author: "Hybrid IME"
+      # 背景
+      back_color: 0x2D2D2D          # 深灰背景
+      border_color: 0x404040        # 边框色
+      # 候选文字
+      candidate_text_color: 0xE8E8E8    # 浅灰文字
+      text_color: 0xCCCCCC              # 编码区文字
+      comment_text_color: 0x808080       # 注释灰色
+      label_color: 0x666666              # 序号灰色
+      # 高亮（选中）
+      hilited_candidate_back_color: 0x4A90D9   # 蓝色高亮背景
+      hilited_candidate_text_color: 0xFFFFFF   # 白色高亮文字
+      hilited_candidate_label_color: 0xBBDDFF  # 高亮序号
+      hilited_text_color: 0xFFFFFF             # 编码区高亮
+      hilited_back_color: 0x3A3A3A             # 编码区高亮背景
+      hilited_comment_text_color: 0xAAAAAA     # 高亮注释
+
+    hybrid_light:
+      name: "Hybrid Light"
+      author: "Hybrid IME"
+      back_color: 0xF5F5F5
+      border_color: 0xDDDDDD
+      candidate_text_color: 0x333333
+      text_color: 0x555555
+      comment_text_color: 0x999999
+      label_color: 0xAAAAAA
+      hilited_candidate_back_color: 0x4A90D9
+      hilited_candidate_text_color: 0xFFFFFF
+      hilited_candidate_label_color: 0xBBDDFF
+      hilited_text_color: 0x333333
+      hilited_back_color: 0xE8E8E8
+      hilited_comment_text_color: 0x777777
+
+  # ============================================================
+  # App 级策略
+  # 不同 App 自动切换不同输入行为
+  # ============================================================
+  app_options:
+    # ---- 开发类 App：默认英文模式 ----
+    com.microsoft.VSCode:
+      ascii_mode: true
+    com.todesktop.230313mzl4w4u92:
+      ascii_mode: true               # Cursor
+    com.apple.Terminal:
+      ascii_mode: true
+    com.googlecode.iterm2:
+      ascii_mode: true
+    com.jetbrains.intellij:
+      ascii_mode: true
+    com.jetbrains.WebStorm:
+      ascii_mode: true
+    com.jetbrains.pycharm:
+      ascii_mode: true
+    com.sublimetext.4:
+      ascii_mode: true
+    com.github.atom:
+      ascii_mode: true
+
+    # ---- 浏览器：混合模式（中文为主） ----
+    com.google.Chrome:
+      ascii_mode: false
+    com.apple.Safari:
+      ascii_mode: false
+    com.mozilla.firefox:
+      ascii_mode: false
+    org.mozilla.firefox:
+      ascii_mode: false
+
+    # ---- 聊天类 App：混合模式（中文为主） ----
+    com.tencent.xinWeChat:
+      ascii_mode: false
+    com.tinyspeck.slackmacgap:
+      ascii_mode: false
+    ru.keepcoder.Telegram:
+      ascii_mode: false
+    com.apple.MobileSMS:
+      ascii_mode: false
+
+    # ---- 文档类 App：混合模式（中文为主） ----
+    com.apple.Notes:
+      ascii_mode: false
+    md.obsidian:
+      ascii_mode: false
+    com.electron.logseq:
+      ascii_mode: false
+    notion.id:
+      ascii_mode: false
+    com.apple.iWork.Pages:
+      ascii_mode: false

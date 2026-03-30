@@ -1,0 +1,112 @@
+# Hybrid IME — 中英混合短语模板词库
+# 收录高频中英混合表达，提升混合输入效率
+# 这些短语在候选中作为整体出现
+
+---
+name: mixed_phrases
+version: "1.0.0"
+sort: by_weight
+...
+
+# ============================================================
+# 开发日常用语
+# 格式: 短语	编码	权重
+# ============================================================
+这个 bug	zhege bug	100
+修复 bug	xiufu bug	95
+先 merge	xian merge	90
+再 merge	zai merge	85
+先 rebase	xian rebase	80
+把 PR	ba pr	90
+提 PR	ti pr	90
+看 PR	kan pr	85
+跑 CI	pao ci	85
+跑一下 CI	paoyixia ci	85
+跑 test	pao test	80
+跑 build	pao build	80
+看 log	kan log	90
+查 log	cha log	85
+打 log	da log	80
+改 config	gai config	85
+看 config	kan config	80
+更新 token	gengxin token	85
+刷新 token	shuaxin token	80
+拿 token	na token	75
+设置 timeout	shezhi timeout	75
+改 timeout	gai timeout	75
+加 cache	jia cache	75
+清 cache	qing cache	80
+写 test	xie test	80
+跑 lint	pao lint	70
+修 lint	xiu lint	70
+
+# ============================================================
+# Git 相关
+# ============================================================
+先 commit	xian commit	85
+再 push	zai push	80
+先 pull	xian pull	85
+先 fetch	xian fetch	75
+切 branch	qie branch	80
+建 branch	jian branch	75
+删 branch	shan branch	70
+打 tag	da tag	75
+看 diff	kan diff	80
+解 conflict	jie conflict	75
+改 commit	gai commit	70
+
+# ============================================================
+# 技术讨论
+# ============================================================
+用 React	yong react	80
+用 Vue	yong vue	80
+用 Docker	yong docker	75
+用 Redis	yong redis	75
+装 Node	zhuang node	70
+装 Python	zhuang python	70
+写 API	xie api	85
+调 API	diao api	85
+测 API	ce api	80
+看 API	kan api	80
+写 SQL	xie sql	80
+优化 SQL	youhua sql	75
+写 CSS	xie css	75
+改 CSS	gai css	75
+写 Shell	xie shell	70
+跑 Shell	pao shell	70
+
+# ============================================================
+# 前端开发
+# ============================================================
+用 TypeScript	yong typescript	80
+装 package	zhuang package	75
+删 node_modules	shan node modules	70
+更新 dependency	gengxin dependency	70
+写 component	xie component	75
+加 component	jia component	70
+看 console	kan console	75
+打 console	da console	70
+
+# ============================================================
+# 部署运维
+# ============================================================
+部署到 prod	bushu dao prod	75
+发 release	fa release	75
+上 staging	shang staging	70
+看 monitor	kan monitor	65
+查 error	cha error	80
+看 error	kan error	80
+加 index	jia index	65
+建 table	jian table	65
+改 schema	gai schema	70
+跑 migration	pao migration	70
+
+# ============================================================
+# AI 交互
+# ============================================================
+用 GPT	yong gpt	80
+问 GPT	wen gpt	75
+用 Claude	yong claude	75
+用 Copilot	yong copilot	75
+写 prompt	xie prompt	80
+改 prompt	gai prompt	75

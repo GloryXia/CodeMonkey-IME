@@ -1,0 +1,11 @@
+# 代码注释场景验收语料
+# ============================================================
+
+# 语料 C：代码注释（PRD §23）
+这里先读取config，再初始化logger。 | 这里先读取 config，再初始化 logger。 | 双术语+中文标点
+这个函数会refresh token，并处理重试逻辑。 | 这个函数会 refresh token，并处理重试逻辑。 | 动词+术语
+
+# 扩展语料
+调用getUserInfo获取用户数据。 | 调用 getUserInfo 获取用户数据。 | camelCase 变量名
+返回值类型为Promise<string>。 | 返回值类型为 Promise<string>。 | 泛型语法保护
+这个middleware负责验证JWT。 | 这个 middleware 负责验证 JWT。 | 缩写术语

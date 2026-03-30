@@ -1,0 +1,41 @@
+# 保护样例验收语料
+# 以下内容在任何场景中均不应被修改
+# ============================================================
+
+# 语料 E：保护样例（PRD §23）
+# 变量名
+user_id | user_id | snake_case 保护
+refreshToken | refreshToken | camelCase 保护
+getUserInfo | getUserInfo | camelCase 保护
+MyComponent | MyComponent | PascalCase 保护
+
+# 函数调用
+refreshToken() | refreshToken() | 函数调用保护
+
+# URL
+https://example.com/api/v1 | https://example.com/api/v1 | URL 完全保护
+http://localhost:3000/test | http://localhost:3000/test | localhost URL 保护
+
+# 路径
+~/Downloads/test | ~/Downloads/test | 用户目录路径
+./config/settings.yaml | ./config/settings.yaml | 相对路径
+/usr/local/bin/node | /usr/local/bin/node | 绝对路径
+~/Library/Application Support/demo | ~/Library/Application Support/demo | 含空格路径
+
+# 命令行参数
+--force | --force | 长参数保护
+-v | -v | 短参数保护
+--no-cache | --no-cache | 含连字符参数
+
+# 版本号
+v1.2.3 | v1.2.3 | 标准版本号
+2.0.0-beta.1 | 2.0.0-beta.1 | 预发布版本号
+
+# 邮箱
+user@example.com | user@example.com | 邮箱保护
+
+# 重要：以下标点绝不应被替换
+# 路径中的 . 不应变成 。
+# URL 中的 , . : 不应被替换
+# 命令参数中的 - 不应被替换
+# 版本号中的 . 不应被替换

@@ -1,0 +1,24 @@
+# Hybrid IME
+# 混合输入法项目
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# 临时文件
+.tmp_*
+*.swp
+*.swo
+*~
+
+# IDE
+.idea/
+.vscode/
+*.sublime-*
+
+# Rime 运行时生成
+*.userdb/
+*.reverse.bin
+*.prism.bin
+*.table.bin
+build/

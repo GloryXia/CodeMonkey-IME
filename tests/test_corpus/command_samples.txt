@@ -1,0 +1,11 @@
+# 命令混排场景验收语料
+# ============================================================
+
+# 语料 D：命令混排（PRD §23）
+执行npm run build，然后检查dist目录。 | 执行 npm run build，然后检查 dist 目录。 | 命令保护+中文标点
+先用git rebase，不要直接merge。 | 先用 git rebase，不要直接 merge。 | 命令+术语
+
+# 扩展语料
+运行curl -X POST发送请求。 | 运行 curl -X POST 发送请求。 | 命令参数保护
+在终端输入brew install lua。 | 在终端输入 brew install lua。 | 安装命令
+使用sudo chmod 755修改权限。 | 使用 sudo chmod 755 修改权限。 | 数字参数

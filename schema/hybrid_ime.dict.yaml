@@ -1,0 +1,25 @@
+# Hybrid IME 主词典
+# 引用多个子词典源
+
+---
+name: hybrid_ime
+version: "1.0.0"
+sort: by_weight
+use_preset_vocabulary: true
+
+# 导入词库列表
+import_tables:
+  # ---- 中文核心词库 ----
+  - cn_dicts/8105     # 通用规范汉字表 8105 字
+  - cn_dicts/base     # 基础词库（两字词 + 调频）
+  - cn_dicts/ext      # 扩展词库（多音字注音）
+  - cn_dicts/tencent  # 腾讯词向量大词库
+  - cn_dicts/others   # 其他补充词库
+
+  # ---- 英文词库 ----
+  - en_dicts/en_ext   # 英文扩展词库
+
+  # ---- Hybrid IME 自定义词库 ----
+  - dicts/tech_terms       # 技术术语
+  - dicts/mixed_phrases    # 中英混合短语
+...

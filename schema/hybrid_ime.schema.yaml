@@ -1,0 +1,190 @@
+# Hybrid IME — 混合输入法主方案
+# 面向开发者的上下文感知中英混合输入法
+# https://github.com/GloryXia/Hybrid-IME
+
+schema:
+  schema_id: hybrid_ime
+  name: "混合输入法"
+  version: "1.0.0"
+  author:
+    - "Hybrid IME Contributors"
+  description: |
+    面向开发者的中英混合输入法。
+    支持上下文感知的标点智能决策、自动空格、混合候选重排。
+    基于 Rime 引擎，通过 Lua 扩展实现核心逻辑。
+  dependencies:
+    - melt_eng  # 英文输入方案
+
+# ============================================================
+# 开关定义
+# ============================================================
+switches:
+  - name: ascii_mode
+    reset: 0
+    states: ["中文", "英文"]
+  - name: full_shape
+    reset: 0
+    states: ["半角", "全角"]
+  - name: ascii_punct
+    reset: 0
+    states: ["中文标点", "英文标点"]
+  - name: simplification
+    reset: 1
+    states: ["繁体", "简体"]
+  # ---- Hybrid IME 自定义开关 ----
+  - name: hybrid_mode
+    reset: 1
+    states: ["标准模式", "混合模式"]
+  - name: auto_punct
+    reset: 1
+    states: ["标点手动", "标点智能"]
+  - name: auto_space
+    reset: 1
+    states: ["空格手动", "空格智能"]
+
+# ============================================================
+# 引擎管线
+# ============================================================
+engine:
+  processors:
+    - ascii_composer          # ASCII 模式切换
+    - recognizer              # 模式识别（URL/邮箱等）
+    - lua_processor@hybrid_processor        # 【自定义】混合输入状态管理
+    - lua_processor@punctuation_processor   # 【自定义】标点智能决策
+    - key_binder              # 快捷键绑定
+    - speller                 # 拼写器
+    - punctuator              # 标点处理（兜底）
+    - selector                # 候选选择
+    - navigator               # 光标导航
+    - express_editor          # 编辑器（快速上屏）
+
+  segmentors:
+    - ascii_segmentor         # ASCII 分段
+    - matcher                 # 匹配器
+    - abc_segmentor           # 拼音分段
+    - punct_segmentor         # 标点分段
+    - fallback_segmentor      # 兜底分段
+
+  translators:
+    - punct_translator        # 标点翻译
+    - script_translator       # 中文拼音翻译（主翻译器）
+    - table_translator@custom_phrase       # 自定义短语
+    - table_translator@melt_eng            # 英文翻译器
+
+  filters:
+    - simplifier                            # 繁简转换
+    - lua_filter@hybrid_filter              # 【自定义】混合候选重排
+    - lua_filter@auto_space_filter          # 【自定义】自动空格
+    - uniquifier                            # 去重
+
+# ============================================================
+# 拼音方案配置
+# ============================================================
+speller:
+  alphabet: zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA
+  delimiter: " '"
+  algebra:
+    - erase/^xx$/
+    # 模糊音（可选，按需启用）
+    # - derive/^([zcs])h/$1/
+    # - derive/^([zcs])([^h])/$1h$2/
+    # - derive/([ei])n$/$1ng/
+    # - derive/([ei])ng$/$1n/
+    - derive/([aei])n$/$1ng/       # 常见模糊
+    - derive/([aei])ng$/$1n/
+    - abbrev/^([a-z]).+$/$1/       # 首字母缩写
+    - abbrev/^([zcs]h).+$/$1/     # zh/ch/sh 缩写
+
+translator:
+  dictionary: hybrid_ime
+  preedit_format:
+    - xform/([nl])v/$1ü/
+    - xform/([nl])ue/$1üe/
+    - xform/([jqxy])v/$1u/
+  enable_completion: true       # 启用自动补全
+  enable_sentence: true         # 启用整句输入
+  enable_user_dict: true        # 启用用户词典
+  enable_encoder: true          # 启用自动造词
+
+# ============================================================
+# 英文翻译器
+# ============================================================
+melt_eng:
+  dictionary: melt_eng
+  enable_completion: true
+  enable_sentence: false
+  initial_quality: 0.5          # 英文候选初始权重（低于中文）
+  enable_user_dict: false
+
+# ============================================================
+# 自定义短语
+# ============================================================
+custom_phrase:
+  dictionary: ""
+  user_dict: custom_phrase
+  db_class: stabledb
+  enable_completion: false
+  enable_sentence: false
+  initial_quality: 1
+
+# ============================================================
+# 标点映射
+# 在混合模式下，标点由 punctuation_processor.lua 智能处理
+# 此处定义兜底行为（当 Lua 处理器不拦截时）
+# ============================================================
+punctuator:
+  import_preset: default
+  half_shape:
+    ",": "，"
+    ".": "。"
+    "?": "？"
+    "!": "！"
+    ":": "："
+    ";": "；"
+    "\\": "、"
+    "/": "/"
+    "'": {pair: ["'", "'"]}
+    "\"": {pair: [""", """]}
+    "<": "《"
+    ">": "》"
+    "(": "（"
+    ")": "）"
+    "[": "["
+    "]": "]"
+    "{": "{"
+    "}": "}"
+    "^": "……"
+    "_": "——"
+    "|": "｜"
+    "~": "～"
+
+# ============================================================
+# 模式识别器
+# 用于识别特殊输入模式，防止误处理
+# ============================================================
+recognizer:
+  import_preset: default
+  patterns:
+    # URL 识别
+    url: "^(https?://|ftp://|mailto:).*$"
+    # 邮箱识别
+    email: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+    # 文件路径识别
+    filepath: "^(~/|\\./|\\.\\./).*$"
+    # 大写字母开头（可能是变量名/类名）
+    uppercase: "^[A-Z][a-zA-Z0-9_]*$"
+
+# ============================================================
+# 快捷键
+# ============================================================
+key_binder:
+  import_preset: default
+  bindings:
+    # Ctrl+Shift+H: 切换混合模式
+    - {accept: "Control+Shift+h", toggle: hybrid_mode, when: always}
+    # Ctrl+Shift+P: 切换标点智能
+    - {accept: "Control+Shift+p", toggle: auto_punct, when: always}
+    # Ctrl+Shift+S: 切换自动空格
+    - {accept: "Control+Shift+s", toggle: auto_space, when: always}
+    # Ctrl+Shift+F: 切换简繁
+    - {accept: "Control+Shift+f", toggle: simplification, when: always}

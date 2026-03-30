@@ -1,0 +1,252 @@
+# Hybrid IME — 技术术语词库
+# 高频编程/开发/技术术语
+# 按拼音编码，用于中文输入时快速切出英文技术术语
+
+---
+name: tech_terms
+version: "1.0.0"
+sort: by_weight
+...
+
+# ============================================================
+# 编程语言
+# 格式: 词条	编码(输入)	权重
+# ============================================================
+Python	python	100
+JavaScript	javascript	100
+TypeScript	typescript	100
+Java	java	90
+Golang	golang	80
+Go	go	70
+Rust	rust	80
+Swift	swift	75
+Kotlin	kotlin	75
+Ruby	ruby	70
+PHP	php	70
+Scala	scala	60
+Lua	lua	60
+C++	cpp	80
+C#	csharp	70
+SQL	sql	85
+HTML	html	90
+CSS	css	90
+JSON	json	95
+YAML	yaml	80
+XML	xml	75
+Markdown	markdown	80
+Shell	shell	75
+Bash	bash	70
+
+# ============================================================
+# 框架与工具
+# ============================================================
+React	react	95
+Vue	vue	90
+Angular	angular	75
+Next.js	nextjs	85
+Nuxt	nuxt	70
+Vite	vite	85
+Webpack	webpack	75
+Node.js	nodejs	90
+Deno	deno	65
+Bun	bun	60
+Express	express	80
+Flask	flask	70
+Django	django	70
+Spring	spring	75
+FastAPI	fastapi	70
+Docker	docker	90
+Kubernetes	kubernetes	80
+K8s	k8s	75
+Nginx	nginx	80
+Redis	redis	85
+MySQL	mysql	85
+PostgreSQL	postgresql	75
+MongoDB	mongodb	75
+GraphQL	graphql	70
+gRPC	grpc	65
+Kafka	kafka	70
+RabbitMQ	rabbitmq	60
+Elasticsearch	elasticsearch	65
+Terraform	terraform	60
+Ansible	ansible	55
+
+# ============================================================
+# 通用开发术语
+# ============================================================
+API	api	100
+SDK	sdk	85
+CLI	cli	80
+GUI	gui	70
+IDE	ide	80
+ORM	orm	70
+MVP	mvp	75
+POC	poc	65
+CI	ci	80
+CD	cd	75
+CI/CD	cicd	85
+DevOps	devops	80
+SaaS	saas	65
+PaaS	paas	55
+IaaS	iaas	50
+token	token	95
+auth	auth	90
+OAuth	oauth	75
+JWT	jwt	80
+CSRF	csrf	65
+CORS	cors	70
+config	config	95
+env	env	85
+debug	debug	90
+log	log	90
+logger	logger	85
+test	test	90
+deploy	deploy	85
+build	build	90
+compile	compile	75
+lint	lint	75
+format	format	70
+merge	merge	90
+rebase	rebase	80
+commit	commit	90
+push	push	85
+pull	pull	85
+fetch	fetch	80
+clone	clone	75
+branch	branch	85
+tag	tag	75
+release	release	80
+hotfix	hotfix	70
+bug	bug	95
+fix	fix	90
+patch	patch	75
+issue	issue	90
+PR	pr	90
+review	review	85
+refactor	refactor	80
+optimize	optimize	75
+cache	cache	85
+queue	queue	70
+stack	stack	70
+thread	thread	70
+process	process	75
+async	async	85
+await	await	85
+promise	promise	75
+callback	callback	70
+middleware	middleware	80
+handler	handler	75
+controller	controller	70
+model	model	75
+view	view	70
+router	router	80
+plugin	plugin	75
+module	module	75
+component	component	80
+interface	interface	75
+function	function	75
+method	method	70
+class	class	75
+struct	struct	65
+enum	enum	65
+type	type	80
+generic	generic	60
+string	string	75
+boolean	boolean	65
+array	array	75
+object	object	70
+null	null	65
+undefined	undefined	60
+void	void	55
+
+# ============================================================
+# 网络与协议
+# ============================================================
+HTTP	http	90
+HTTPS	https	90
+TCP	tcp	70
+UDP	udp	60
+WebSocket	websocket	75
+REST	rest	80
+RESTful	restful	70
+URL	url	90
+URI	uri	70
+DNS	dns	70
+IP	ip	75
+proxy	proxy	70
+CDN	cdn	70
+SSL	ssl	70
+TLS	tls	65
+SSH	ssh	80
+
+# ============================================================
+# 包管理器和命令行工具
+# ============================================================
+npm	npm	95
+yarn	yarn	80
+pnpm	pnpm	75
+pip	pip	80
+cargo	cargo	70
+brew	brew	85
+apt	apt	60
+gem	gem	55
+git	git	100
+curl	curl	75
+wget	wget	65
+make	make	70
+cmake	cmake	55
+sudo	sudo	70
+chmod	chmod	60
+grep	grep	70
+sed	sed	60
+awk	awk	55
+
+# ============================================================
+# 开发相关术语
+# ============================================================
+frontend	frontend	80
+backend	backend	80
+fullstack	fullstack	65
+microservice	microservice	65
+container	container	65
+pod	pod	55
+cluster	cluster	60
+namespace	namespace	65
+pipeline	pipeline	70
+workflow	workflow	75
+action	action	65
+trigger	trigger	60
+timeout	timeout	80
+retry	retry	75
+fallback	fallback	65
+encrypt	encrypt	60
+decrypt	decrypt	55
+hash	hash	65
+token	token	90
+session	session	75
+cookie	cookie	70
+payload	payload	65
+request	request	80
+response	response	80
+endpoint	endpoint	75
+header	header	70
+body	body	60
+schema	schema	70
+migration	migration	65
+seed	seed	55
+localhost	localhost	75
+port	port	65
+database	database	75
+table	table	65
+index	index	65
+query	query	75
+mutation	mutation	60
+subscription	subscription	55
+repository	repository	65
+repo	repo	80
+package	package	70
+dependency	dependency	65
+version	version	70
+changelog	changelog	60
+readme	readme	65
+license	license	55

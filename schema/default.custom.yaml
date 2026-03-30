@@ -1,0 +1,17 @@
+# default.custom.yaml
+# 全局配置覆盖：注册 Hybrid IME 方案
+
+patch:
+  schema_list:
+    - {schema: hybrid_ime}
+    # 如需保留其他方案可在下方追加
+    # - {schema: luna_pinyin}
+    # - {schema: double_pinyin_flypy}
+
+  # 候选数量
+  "menu/page_size": 7
+
+  # 切换方案快捷键
+  "switcher/hotkeys":
+    - "Control+grave"
+    - "F4"
