@@ -1,4 +1,4 @@
-# Hybrid IME 主词典
+# 开发专用输入法 主词典
 # 引用多个子词典源
 
 ---
@@ -19,7 +19,7 @@ import_tables:
   # ---- 英文词库 ----
   - en_dicts/en_ext   # 英文扩展词库
 
-  # ---- Hybrid IME 自定义词库 ----
+  # ---- 开发专用输入法 自定义词库 ----
   - dicts/tech_terms       # 技术术语
   - dicts/mixed_phrases    # 中英混合短语
 ...

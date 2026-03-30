@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================
-# Hybrid IME — 安装脚本
-# 将 Hybrid IME 配置安装到 macOS Rime (Squirrel) 用户目录
+# 开发专用输入法 — 安装脚本
+# 将 开发专用输入法 配置安装到 macOS Rime (Squirrel) 用户目录
 # ============================================================
 
 set -euo pipefail
@@ -21,7 +21,7 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 BACKUP_DIR="$RIME_DIR/.hybrid_ime_backup_$(date +%Y%m%d_%H%M%S)"
 
 echo -e "${BLUE}╔══════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║     Hybrid IME — 混合输入法 安装程序     ║${NC}"
+echo -e "${BLUE}║     开发专用输入法 — 开发专用输入法 安装程序     ║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════════╝${NC}"
 echo ""
 
@@ -94,10 +94,13 @@ echo -e "${GREEN}  ✓ 备份完成: $BACKUP_DIR${NC}"
 echo -e "${YELLOW}[4/6]${NC} 安装 Schema 配置..."
 
 # 复制 schema 文件到 Rime 目录
-cp "$PROJECT_DIR/schema/hybrid_ime.schema.yaml" "$RIME_DIR/"
-cp "$PROJECT_DIR/schema/hybrid_ime.dict.yaml" "$RIME_DIR/"
-cp "$PROJECT_DIR/schema/default.custom.yaml" "$RIME_DIR/"
-cp "$PROJECT_DIR/schema/squirrel.custom.yaml" "$RIME_DIR/"
+# 包括 hybrid_ime 配置和依赖方案 (melt_eng 等)
+for yaml_file in "$PROJECT_DIR/schema/"*.yaml; do
+    if [ -f "$yaml_file" ]; then
+        cp "$yaml_file" "$RIME_DIR/"
+        echo -e "  安装: $(basename "$yaml_file")"
+    fi
+done
 echo -e "${GREEN}  ✓ Schema 文件已安装${NC}"
 
 # ============================================================
@@ -113,7 +116,7 @@ echo -e "  ✓ Lua 脚本已安装"
 # 创建 rime.lua 入口（如果不存在）
 if [ ! -f "$RIME_DIR/rime.lua" ]; then
     cat > "$RIME_DIR/rime.lua" << 'EOF'
--- Hybrid IME 入口
+-- 开发专用输入法 入口
 require("hybrid_init")
 EOF
     echo -e "  ✓ rime.lua 已创建"
@@ -121,7 +124,7 @@ else
     # 检查是否已包含 hybrid_init
     if ! grep -q "hybrid_init" "$RIME_DIR/rime.lua"; then
         echo '' >> "$RIME_DIR/rime.lua"
-        echo '-- Hybrid IME 入口' >> "$RIME_DIR/rime.lua"
+        echo '-- 开发专用输入法 入口' >> "$RIME_DIR/rime.lua"
         echo 'require("hybrid_init")' >> "$RIME_DIR/rime.lua"
         echo -e "  ✓ rime.lua 已更新（追加 hybrid_init）"
     else
@@ -156,29 +159,27 @@ echo -e "${GREEN}  ✓ 所有文件安装完成${NC}"
 # ============================================================
 echo -e "${YELLOW}[6/6]${NC} 触发 Rime 重新部署..."
 
-# 通过通知触发 Squirrel 重新部署
+# 由于 Squirrel 自动化部署在较新 macOS 上常因为权限问题失败，这里改为通知用户手动操作
 if command -v osascript &> /dev/null; then
-    osascript -e 'tell application id "im.rime.inputmethod.Squirrel" to deploy' 2>/dev/null || true
-    echo -e "${GREEN}  ✓ 已触发重新部署${NC}"
-else
-    echo -e "${YELLOW}  ⚠ 请手动在 Squirrel 菜单中点击「重新部署」${NC}"
+    osascript -e 'display notification "请点击右上角输入法图标 → 重新部署" with title "开发专用输入法 安装完成"' 2>/dev/null || true
 fi
+echo -e "${YELLOW}  ⚠ 请手动点击右上角 Squirrel 菜单图标，选择「重新部署」${NC}"
 
 # ============================================================
 # 完成
 # ============================================================
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║         Hybrid IME 安装成功！            ║${NC}"
+echo -e "${GREEN}║         开发专用输入法 安装成功！            ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "  使用提示："
 echo -e "  1. 在系统设置 → 键盘 → 输入法 中添加 Squirrel"
-echo -e "  2. 切换到 Squirrel 后，按 ${BLUE}Ctrl+\`${NC} 或 ${BLUE}F4${NC} 选择「混合输入法」"
+echo -e "  2. 切换到 Squirrel 后，按 ${BLUE}Ctrl+\`${NC} 或 ${BLUE}F4${NC} 选择「开发专用输入法」"
 echo -e "  3. 快捷键："
-echo -e "     ${BLUE}Ctrl+Shift+H${NC} — 切换混合模式"
-echo -e "     ${BLUE}Ctrl+Shift+P${NC} — 切换标点智能"
-echo -e "     ${BLUE}Ctrl+Shift+S${NC} — 切换自动空格"
+echo -e "     ${BLUE}Ctrl+Shift+1${NC} 或 ${BLUE}F5${NC} — 切换混合模式"
+echo -e "     ${BLUE}Ctrl+Shift+2${NC} 或 ${BLUE}F6${NC} — 切换标点智能"
+echo -e "     ${BLUE}Ctrl+Shift+3${NC} 或 ${BLUE}F7${NC} — 切换自动空格"
 echo ""
 echo -e "  备份位置: ${YELLOW}$BACKUP_DIR${NC}"
 echo ""

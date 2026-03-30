@@ -1,6 +1,6 @@
 -- ============================================================
 -- hybrid_processor.lua — 混合输入状态管理处理器
--- 管理输入状态、记录已提交文本、处理回退逻辑
+-- 管理输入状态、记录已提交文本、处理快捷键切换
 -- ============================================================
 
 local utils = require("utils")
@@ -62,6 +62,89 @@ local function record_commit(env, text, source)
 end
 
 -- ============================================================
+-- 选项切换辅助函数
+-- ============================================================
+
+--- 切换一个 Rime 选项并通过 commit_text 提示用户当前状态
+--- @param env table Rime 环境
+--- @param option_name string 选项名称
+--- @param on_label string 开启时的显示文字
+--- @param off_label string 关闭时的显示文字
+--- @return boolean 是否成功切换
+local function toggle_option(env, option_name, on_label, off_label)
+    local context = env.engine.context
+    if not context then return false end
+
+    local current = context:get_option(option_name)
+    -- 如果是 nil（首次访问），视为开启状态
+    if current == nil then current = true end
+
+    local new_value = not current
+    context:set_option(option_name, new_value)
+
+    -- 注: Rime 会在状态栏自动显示 switches 中定义的 states 标签
+    -- 无需额外提示
+
+    return true
+end
+
+-- ============================================================
+-- 快捷键检测
+-- ============================================================
+
+--- 检测按键是否匹配 Ctrl+Shift+数字
+--- @param key_event table
+--- @return number|nil 匹配的数字 (1-9)，不匹配返回 nil
+local function detect_ctrl_shift_number(key_event)
+    if not (key_event:ctrl() and key_event:shift()) then
+        return nil
+    end
+    -- 数字键 1-9 的 keycode
+    -- 在 Rime 中，按下 Ctrl+Shift+1 时:
+    --   keycode 可能是 0x31 ('1') 或对应的 XK 符号
+    local keycode = key_event.keycode
+
+    -- ASCII 数字 '1'-'9' = 0x31 - 0x39
+    if keycode >= 0x31 and keycode <= 0x39 then
+        return keycode - 0x30
+    end
+
+    -- 某些系统上 Shift+数字 会产生符号键 (!@#$...)
+    -- Shift+1 = ! (0x21), Shift+2 = @ (0x40), Shift+3 = # (0x23)
+    -- Shift+4 = $ (0x24)
+    local shift_num_map = {
+        [0x21] = 1,  -- !
+        [0x40] = 2,  -- @
+        [0x23] = 3,  -- #
+        [0x24] = 4,  -- $
+        [0x25] = 5,  -- %
+        [0x5E] = 6,  -- ^
+        [0x26] = 7,  -- &
+        [0x2A] = 8,  -- *
+        [0x28] = 9,  -- (
+    }
+    if shift_num_map[keycode] then
+        return shift_num_map[keycode]
+    end
+
+    return nil
+end
+
+--- 检测 F5/F6/F7 功能键
+--- @param key_event table
+--- @return number|nil F键编号 (5/6/7)
+local function detect_function_key(key_event)
+    local keycode = key_event.keycode
+    -- F5 = 0xFFC2, F6 = 0xFFC3, F7 = 0xFFC4 (X11 keysym)
+    -- 在 Rime/macOS 中也可能是其他值
+    -- librime 使用 XK_F5=0xFFC2 等
+    if keycode == 0xFFC2 then return 5 end
+    if keycode == 0xFFC3 then return 6 end
+    if keycode == 0xFFC4 then return 7 end
+    return nil
+end
+
+-- ============================================================
 -- 主处理器逻辑
 -- ============================================================
 
@@ -74,19 +157,40 @@ local function processor(key_event, env)
     local context = env.engine.context
 
     -- ========================================
-    -- 快捷键：Ctrl+Z 撤销上次智能替换
+    -- 快捷键处理: Ctrl+Shift+数字
     -- ========================================
-    if key_event:ctrl() and key_event.keycode == 0x7A then -- 'z'
-        if #env.undo_stack > 0 then
-            local last_action = table.remove(env.undo_stack)
-            if last_action then
-                -- 这里的撤销是有限的：只能提示用户
-                -- Rime 本身不支持回退已提交文本
-                -- 未来可通过更复杂的机制实现
-            end
+    local num = detect_ctrl_shift_number(key_event)
+    if num then
+        if num == 1 then
+            toggle_option(env, "hybrid_mode", "混合模式", "标准模式")
+            return kAccepted
+        elseif num == 2 then
+            toggle_option(env, "auto_punct", "标点智能", "标点手动")
+            return kAccepted
+        elseif num == 3 then
+            toggle_option(env, "auto_space", "空格智能", "空格手动")
+            return kAccepted
+        elseif num == 4 then
+            toggle_option(env, "simplification", "简体", "繁体")
+            return kAccepted
         end
-        -- 不拦截，让系统 Ctrl+Z 正常工作
-        return kRejected
+    end
+
+    -- ========================================
+    -- 快捷键处理: F5/F6/F7
+    -- ========================================
+    local fkey = detect_function_key(key_event)
+    if fkey then
+        if fkey == 5 then
+            toggle_option(env, "hybrid_mode", "混合模式", "标准模式")
+            return kAccepted
+        elseif fkey == 6 then
+            toggle_option(env, "auto_punct", "标点智能", "标点手动")
+            return kAccepted
+        elseif fkey == 7 then
+            toggle_option(env, "auto_space", "空格智能", "空格手动")
+            return kAccepted
+        end
     end
 
     -- ========================================
@@ -113,7 +217,7 @@ local function processor(key_event, env)
         end
     end
 
-    -- 不拦截任何按键，仅管理状态
+    -- 不拦截其他按键，仅管理状态
     return kRejected
 end
 

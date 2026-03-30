@@ -2,7 +2,7 @@
 
 ## 概述
 
-Hybrid IME 通过 Squirrel 的 `app_options` 机制为不同类型的应用设置不同的默认输入行为。
+开发专用输入法 通过 Squirrel 的 `app_options` 机制为不同类型的应用设置不同的默认输入行为。
 
 ## 策略分类
 

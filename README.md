@@ -1,4 +1,4 @@
-# Hybrid IME — 混合输入法
+# 开发专用输入法 — 开发专用输入法
 
 > 为开发者设计的中英混合表达输入法
 
@@ -37,12 +37,12 @@
 brew install --cask squirrel
 ```
 
-### 安装 Hybrid IME
+### 安装 开发专用输入法
 
 ```bash
 # 克隆仓库
-git clone https://github.com/GloryXia/Hybrid-IME.git
-cd Hybrid-IME
+git clone https://github.com/GloryXia/Dev-IME.git
+cd Dev-IME
 
 # 同步词库（首次安装需要）
 make sync-dicts
@@ -53,17 +53,19 @@ make install
 
 安装完成后：
 1. 在系统设置 → 键盘 → 输入法 中添加 Squirrel
-2. 按 `Ctrl+`` 或 `F4` 选择「混合输入法」
+2. 按 `Ctrl+`` 或 `F4` 选择「开发专用输入法」
 
 ## ⌨️ 快捷键
 
-| 快捷键 | 功能 |
-|:-------|:-----|
-| `Ctrl+Shift+H` | 切换混合模式（开/关） |
-| `Ctrl+Shift+P` | 切换标点智能（中文标点自动替换） |
-| `Ctrl+Shift+S` | 切换自动空格 |
-| `Ctrl+Shift+F` | 切换简繁 |
-| `Ctrl+`` / `F4` | 切换输入方案 |
+| 快捷键 | 备用键 | 功能 |
+|:-------|:-------|:-----|
+| `Ctrl+Shift+1` | `F5` | 切换混合模式（开/关） |
+| `Ctrl+Shift+2` | `F6` | 切换标点智能（中文标点自动替换） |
+| `Ctrl+Shift+3` | `F7` | 切换自动空格 |
+| `Ctrl+Shift+4` | — | 切换简繁 |
+| `Ctrl+`` / `F4` | — | 切换输入方案 |
+
+> **提示**：也可以按 `Ctrl+`` 或 `F4` 打开方案菜单，直接勾选/取消各项开关。
 
 ## 🏗️ 架构
 
@@ -136,7 +138,7 @@ make status
 ## 📁 项目结构
 
 ```
-Hybrid-IME/
+Dev-IME/
 ├── schema/                 # Rime 方案配置
 │   ├── hybrid_ime.schema.yaml
 │   ├── hybrid_ime.dict.yaml
@@ -179,4 +181,5 @@ MIT License
 
 - [Rime 输入法引擎](https://rime.im/)
 - [雾凇拼音 (rime-ice)](https://github.com/iDvel/rime-ice) — 词库来源
-- [librime-lua](https://github.com/hchunhui/librime-lua) — Lua 扩展支持
+- [librime-lua](https://github.com/hchunhui/librime-lua) — Lua 扩展支
+

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# Hybrid IME — 词库同步脚本
+# 开发专用输入法 — 词库同步脚本
 # 从 rime-ice 仓库同步中英文词库
 # ============================================================
 
@@ -16,7 +16,7 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 RIME_ICE_REPO="https://github.com/iDvel/rime-ice.git"
 TEMP_DIR="$PROJECT_DIR/.tmp_rime_ice"
 
-echo -e "${BLUE}Hybrid IME — 词库同步${NC}"
+echo -e "${BLUE}开发专用输入法 — 词库同步${NC}"
 echo ""
 
 # 克隆 rime-ice（浅克隆）

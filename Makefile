@@ -1,5 +1,5 @@
 # ============================================================
-# Hybrid IME — Makefile
+# 开发专用输入法 — Makefile
 # ============================================================
 
 .PHONY: install uninstall deploy sync-dicts test clean help
@@ -9,18 +9,18 @@ RIME_DIR := $(HOME)/Library/Rime
 
 # 默认目标
 help: ## 显示帮助
-	@echo "Hybrid IME — 混合输入法"
+	@echo "开发专用输入法 — 开发专用输入法"
 	@echo ""
 	@echo "可用命令："
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 
-install: ## 安装 Hybrid IME 到 Rime
+install: ## 安装 开发专用输入法 到 Rime
 	@chmod +x scripts/install.sh
 	@bash scripts/install.sh
 
-uninstall: ## 卸载 Hybrid IME
+uninstall: ## 卸载 开发专用输入法
 	@chmod +x scripts/uninstall.sh
 	@bash scripts/uninstall.sh
 
@@ -61,7 +61,7 @@ clean: ## 清理临时文件
 	@echo "✓ 临时文件已清理"
 
 status: ## 检查安装状态
-	@echo "Hybrid IME 安装状态："
+	@echo "开发专用输入法 安装状态："
 	@echo ""
 	@echo "Rime 目录: $(RIME_DIR)"
 	@if [ -f "$(RIME_DIR)/hybrid_ime.schema.yaml" ]; then \
