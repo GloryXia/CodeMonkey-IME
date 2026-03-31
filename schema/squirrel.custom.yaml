@@ -64,25 +64,27 @@ patch:
   # 不同 App 自动切换不同输入行为
   # ============================================================
   app_options:
-    # ---- 开发类 App：默认英文模式 ----
+    # ---- 开发类 App：默认混合模式 ----
+    # 这套方案依赖候选重排来处理中英混输。
+    # 若默认进入 ascii passthrough，会直接失去中文候选框。
     com.microsoft.VSCode:
-      ascii_mode: true
+      ascii_mode: false
     com.todesktop.230313mzl4w4u92:
-      ascii_mode: true               # Cursor
+      ascii_mode: false              # Cursor
     com.apple.Terminal:
-      ascii_mode: true
+      ascii_mode: false
     com.googlecode.iterm2:
-      ascii_mode: true
+      ascii_mode: false
     com.jetbrains.intellij:
-      ascii_mode: true
+      ascii_mode: false
     com.jetbrains.WebStorm:
-      ascii_mode: true
+      ascii_mode: false
     com.jetbrains.pycharm:
-      ascii_mode: true
+      ascii_mode: false
     com.sublimetext.4:
-      ascii_mode: true
+      ascii_mode: false
     com.github.atom:
-      ascii_mode: true
+      ascii_mode: false
 
     # ---- 浏览器：混合模式（中文为主） ----
     com.google.Chrome:
@@ -110,6 +112,8 @@ patch:
     md.obsidian:
       ascii_mode: false
     com.electron.logseq:
+      ascii_mode: false
+    com.openai.codex:
       ascii_mode: false
     notion.id:
       ascii_mode: false

@@ -13,7 +13,7 @@ schema:
     支持上下文感知的标点智能决策、自动空格、混合候选重排。
     基于 Rime 引擎，通过 Lua 扩展实现核心逻辑。
   dependencies:
-    - melt_eng  # 英文输入方案
+    - stroke
 
 # ============================================================
 # 开关定义
@@ -73,8 +73,7 @@ engine:
 
   filters:
     - simplifier                            # 繁简转换
-    - lua_filter@hybrid_filter              # 【自定义】混合候选重排
-    - lua_filter@auto_space_filter          # 【自定义】自动空格
+    - lua_filter@candidate_rerank_filter    # Phase 2 保守版候选重排
     - uniquifier                            # 去重
 
 # ============================================================
@@ -85,18 +84,23 @@ speller:
   delimiter: " '"
   algebra:
     - erase/^xx$/
-    # 模糊音（可选，按需启用）
-    # - derive/^([zcs])h/$1/
-    # - derive/^([zcs])([^h])/$1h$2/
-    # - derive/([ei])n$/$1ng/
-    # - derive/([ei])ng$/$1n/
+    - abbrev/^([a-z]).+$/$1/           # 简拼（首字母）
+    - abbrev/^([zcs]h).+$/$1/          # 简拼（zh/ch/sh）
+    - derive/^([nl])ve$/$1ue/correction
+    - derive/^([jqxy])u/$1v/correction
+    - derive/un$/uen/correction
+    - derive/ui$/uei/correction
+    - derive/iu$/iou/correction
+    - derive/([aeiou])ng$/$1gn/correction
+    - derive/([dtngkhrzcs])o(u|ng)$/$1o/correction
+    - derive/ong$/on/correction
+    - derive/ao$/oa/correction
+    - derive/([iu])a(o|ng?)$/a$1$2/correction
     - derive/([aei])n$/$1ng/       # 常见模糊
     - derive/([aei])ng$/$1n/
-    - abbrev/^([a-z]).+$/$1/       # 首字母缩写
-    - abbrev/^([zcs]h).+$/$1/     # zh/ch/sh 缩写
 
 translator:
-  dictionary: hybrid_ime
+  dictionary: luna_pinyin
   preedit_format:
     - xform/([nl])v/$1ü/
     - xform/([nl])ue/$1üe/
@@ -133,7 +137,9 @@ custom_phrase:
 # 此处定义兜底行为（当 Lua 处理器不拦截时）
 # ============================================================
 punctuator:
+  import_preset: default
   half_shape:
+    "$": "$"
     ",": "，"
     ".": "。"
     "?": "？"
@@ -142,16 +148,16 @@ punctuator:
     ";": "；"
     "\\": "、"
     "/": "/"
-    "'": {pair: ["'", "'"]}
-    "\"": {pair: ['"', '"']}
+    "'": "'"
+    "\"": "\u201c"
     "<": "《"
     ">": "》"
     "(": "（"
     ")": "）"
-    "[": "["
-    "]": "]"
-    "{": "{"
-    "}": "}"
+    "[": "【"
+    "]": "】"
+    "{": "｛"
+    "}": "｝"
     "^": "……"
     "_": "——"
     "|": "｜"
@@ -162,11 +168,12 @@ punctuator:
 # 用于识别特殊输入模式，防止误处理
 # ============================================================
 recognizer:
+  import_preset: default
   patterns:
     # URL 识别
     url: "^(https?://|ftp://|mailto:).*$"
     # 邮箱识别
-    email: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+$"
+    email: "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9.-]+$"
     # 文件路径识别
     filepath: "^(~/|\\./|\\.\\./).*$"
     # 大写字母开头（可能是变量名/类名）
@@ -179,6 +186,26 @@ recognizer:
 # ============================================================
 key_binder:
   bindings:
+    # --- 保留常用编辑/翻页键 ---
+    - {accept: "Control+p", send: Up, when: composing}
+    - {accept: "Control+n", send: Down, when: composing}
+    - {accept: "Control+b", send: Left, when: composing}
+    - {accept: "Control+f", send: Right, when: composing}
+    - {accept: "Control+a", send: Home, when: composing}
+    - {accept: "Control+e", send: End, when: composing}
+    - {accept: "Control+d", send: Delete, when: composing}
+    - {accept: "Control+k", send: "Shift+Delete", when: composing}
+    - {accept: "Control+h", send: BackSpace, when: composing}
+    - {accept: "Control+g", send: Escape, when: composing}
+    - {accept: "Control+bracketleft", send: Escape, when: composing}
+    - {accept: "Control+y", send: Page_Up, when: composing}
+    - {accept: "Alt+v", send: Page_Up, when: composing}
+    - {accept: "Control+v", send: Page_Down, when: composing}
+    - {accept: minus, send: Page_Up, when: has_menu}
+    - {accept: equal, send: Page_Down, when: has_menu}
+    - {accept: comma, send: Page_Up, when: paging}
+    - {accept: period, send: Page_Down, when: has_menu}
+
     # --- 开发专用输入法 专用快捷键 ---
     # Ctrl+Shift+1: 切换混合模式
     - {accept: "Control+Shift+1", toggle: hybrid_mode, when: always}

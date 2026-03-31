@@ -10,9 +10,10 @@
 
 - **🔄 单输入流**：中英文、术语、路径、命令在同一输入流中自然切换，无需手动切换输入法
 - **📝 标点智能**：根据上下文自动决策标点样式——中文语境用中文标点，代码/命令/路径中保留半角
+- **🎯 自动配对 & Overtype**：输入成对符号（如 `<`、`(`、`[`、`"`）自动成对输出并让光标异步居中；再次输入右半边符号时自动跳出（Overtype），提供 IDE 级的无缝编码体验
 - **⎵ 自动空格**：中英混排自动补充空格（`这个 bug` 而非 `这个bug`）
 - **🛡️ 代码保护**：变量名、路径、URL、命令行参数等内容严格保护，不被误改
-- **🎯 混合候选**：中文词与英文技术术语混合排列，上下文感知重排
+- **🔄 混合候选**：中文词与英文技术术语混合排列，上下文感知重排
 - **⚡ App 感知**：不同应用自动切换策略（VS Code 默认英文，微信默认中文）
 
 ## 🎬 适用场景
@@ -67,6 +68,14 @@ make install
 
 > **提示**：也可以按 `Ctrl+`` 或 `F4` 打开方案菜单，直接勾选/取消各项开关。
 
+## 🌟 深度特性：IDE 级标点体验
+
+在 macOS 上，输入法架构（InputMethodKit）原本无法控制宿主应用的光标位置。本输入法打破了这一限制，为你提供代码编辑器级别的内容输入体验：
+
+1. **配对直接上屏**：在中文语境下输入 `<`，自动输出完整的 `《》`。
+2. **异步物理光标居中**：提交字符后，通过后台派发延时异步任务，调用 AppleScript（`System Events`）模拟硬键盘「左箭头」事件，极速将光标完美拉回括号中间（适用于备忘录、微信等绝大部分支持 Apple Event 的 App）。
+3. **Overtype（闭合符号智能跳出）**：光标在 `《|》` 时，如果你顺手输入了右侧的 `>`，输入法不会输出冗余的 `》`（避免变成 `《内容》》`），而是直接丢弃按键并发送「右箭头」光标事件，让你“滑出”括号，一气呵成。
+
 ## 🏗️ 架构
 
 ```
@@ -87,6 +96,7 @@ make install
 | 上下文检测 | `lua/context_detector.lua` | Token 分类、保护模式检测 |
 | 标点处理 | `lua/punctuation_processor.lua` | 上下文感知标点决策 |
 | 状态管理 | `lua/hybrid_processor.lua` | 输入状态跟踪、回退 |
+| 模型桥接 | `lua/model_bridge.lua` | 本地 sidecar 调用、缓存与安全回退 |
 | 候选重排 | `lua/hybrid_filter.lua` | 混合候选智能排序 |
 | 自动空格 | `lua/auto_space_filter.lua` | 中英混排空格补充 |
 
@@ -135,6 +145,57 @@ make test
 make status
 ```
 
+Phase 0 本地模型埋点默认写入：
+
+```text
+~/Library/Rime/hybrid_ime_model_events.jsonl
+```
+
+Phase 1 sidecar stub 默认监听：
+
+```text
+http://127.0.0.1:39571/score_context
+```
+
+可选本地配置文件：
+
+```text
+~/Library/Rime/hybrid_ime_model.conf
+```
+
+示例：
+
+```ini
+enabled=true
+endpoint=http://127.0.0.1:39571/score_context
+timeout_ms=200
+cache_ttl_ms=800
+```
+
+启动本地 stub：
+
+```bash
+make model-sidecar
+```
+
+安装为自动启动的用户级服务：
+
+```bash
+make model-sidecar-service-install
+```
+
+查看服务状态：
+
+```bash
+make model-sidecar-service-status
+```
+
+卸载服务：
+
+```bash
+make model-sidecar-service-uninstall
+```
+
 ## 📁 项目结构
 
 ```
@@ -148,6 +209,12 @@ Dev-IME/
 │   ├── hybrid_init.lua
 │   ├── utils.lua
 │   ├── context_detector.lua
+│   ├── model_feature_extractor.lua
+│   ├── model_cache.lua
+│   ├── model_json.lua
+│   ├── model_logger.lua
+│   ├── model_bridge.lua
+│   ├── model_sidecar_client.lua
 │   ├── punctuation_processor.lua
 │   ├── hybrid_processor.lua
 │   ├── hybrid_filter.lua
@@ -157,8 +224,14 @@ Dev-IME/
 │   ├── mixed_phrases.dict.yaml
 │   └── protected_patterns.txt
 ├── tests/                  # 测试用例
-├── scripts/                # 安装/卸载脚本
+├── scripts/                # 安装与系统辅助脚本
+│   ├── hybrid_cursor_left.m
+│   ├── hybrid_cursor_move.sh
+│   └── start_model_sidecar.sh
 ├── docs/                   # 设计文档
+├── tools/                  # 本地 sidecar 原型
+│   └── modeld/
+│       └── model_sidecar_stub.py
 └── Makefile
 ```
 
@@ -170,8 +243,9 @@ Dev-IME/
 - [x] **Phase 4**: 混合候选重排
 - [x] **Phase 5**: 保护规则
 - [x] **Phase 6**: App 级策略
-- [ ] **Phase 7**: 个性化学习
-- [ ] **Phase 8**: 端侧 AI 重排
+- [x] **Phase 7**: 本地模型埋点基础设施
+- [ ] **Phase 8**: 个性化学习
+- [ ] **Phase 9**: 端侧 AI 重排
 
 ## 📄 License
 
@@ -182,4 +256,3 @@ MIT License
 - [Rime 输入法引擎](https://rime.im/)
 - [雾凇拼音 (rime-ice)](https://github.com/iDvel/rime-ice) — 词库来源
 - [librime-lua](https://github.com/hchunhui/librime-lua) — Lua 扩展支
-

@@ -17,6 +17,36 @@ local function init(env)
     }
 end
 
+--- 包装候选而不破坏原始候选的元数据。
+--- 自动空格只改显示文本，保留原候选的质量、来源和行为。
+--- @param cand userdata
+--- @param text string|nil
+--- @param comment string|nil
+--- @return userdata
+local function wrap_candidate(cand, text, comment)
+    local new_text = text or cand.text
+    local new_comment = comment
+    if new_comment == nil then
+        new_comment = cand.comment
+    end
+
+    if ShadowCandidate then
+        return ShadowCandidate(cand, cand.type, new_text, new_comment)
+    end
+
+    local new_cand = Candidate(
+        cand.type,
+        cand.start,
+        cand._end,
+        new_text,
+        new_comment
+    )
+    if new_cand and cand.quality ~= nil then
+        new_cand.quality = cand.quality
+    end
+    return new_cand
+end
+
 -- ============================================================
 -- 判断是否需要在候选前添加空格
 -- ============================================================
@@ -115,17 +145,7 @@ local function filter(input, env)
         local text = cand.text
 
         if need_space_before(text, env) then
-            -- 在候选文本前加空格
-            -- 创建新候选，文本前加空格
-            local new_cand = Candidate(
-                cand.type,
-                cand.start,
-                cand._end,
-                " " .. text,
-                cand.comment
-            )
-            new_cand.quality = cand.quality
-            yield(new_cand)
+            yield(wrap_candidate(cand, " " .. text, cand.comment))
         else
             yield(cand)
         end

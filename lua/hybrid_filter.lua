@@ -6,6 +6,50 @@
 local utils = require("utils")
 local detector = require("context_detector")
 
+local function latest_commit_text(context)
+    if not context then
+        return ""
+    end
+
+    local commit_text = context:get_commit_text() or ""
+    if commit_text ~= "" then
+        return commit_text
+    end
+
+    local history = context.commit_history
+    if history and history.latest_text then
+        local ok, text = pcall(function()
+            return history:latest_text()
+        end)
+        if ok and text and text ~= "" then
+            return text
+        end
+    end
+
+    return ""
+end
+
+local function record_commit(env, text)
+    if not text or text == "" then
+        return
+    end
+
+    env.filter_state.last_synced_commit_text = text
+    env.filter_state.recent_committed =
+        ((env.filter_state.recent_committed or "") .. text)
+    if #env.filter_state.recent_committed > 200 then
+        env.filter_state.recent_committed = env.filter_state.recent_committed:sub(-200)
+    end
+end
+
+local function sync_commit_state(env, context)
+    local text = latest_commit_text(context)
+    if text ~= "" and text ~= env.filter_state.last_synced_commit_text then
+        record_commit(env, text)
+    end
+    return text
+end
+
 -- ============================================================
 -- 初始化
 -- ============================================================
@@ -13,7 +57,45 @@ local detector = require("context_detector")
 local function init(env)
     env.filter_state = {
         recent_committed = "",
+        last_synced_commit_text = nil,
     }
+
+    local context = env.engine and env.engine.context
+    if context and context.commit_notifier and context.commit_notifier.connect then
+        env.commit_notifier = context.commit_notifier:connect(function(ctx)
+            sync_commit_state(env, ctx)
+        end)
+    end
+end
+
+--- 包装候选而不丢失原始候选的元数据。
+--- 在 Rime filter 中优先使用 ShadowCandidate，避免把候选降级成 SimpleCandidate。
+--- @param cand userdata
+--- @param text string|nil
+--- @param comment string|nil
+--- @return userdata
+local function wrap_candidate(cand, text, comment)
+    local new_text = text or cand.text
+    local new_comment = comment
+    if new_comment == nil then
+        new_comment = cand.comment
+    end
+
+    if ShadowCandidate then
+        return ShadowCandidate(cand, cand.type, new_text, new_comment)
+    end
+
+    local new_cand = Candidate(
+        cand.type,
+        cand.start,
+        cand._end,
+        new_text,
+        new_comment
+    )
+    if new_cand and cand.quality ~= nil then
+        new_cand.quality = cand.quality
+    end
+    return new_cand
 end
 
 -- ============================================================
@@ -64,9 +146,10 @@ local function compute_score_bonus(cand, lang_context, input)
         if is_pure_zh then
             bonus = bonus + 10
         end
-        -- 技术术语有小幅加分（在中文语境中也常出现）
+        -- 技术术语在中文语境中应明显靠前，
+        -- 但不能压过普通中文拼音候选。
         if is_tech then
-            bonus = bonus + 5
+            bonus = bonus + 8
         end
         -- 纯英文在中文语境下降权
         if is_pure_en and not is_tech then
@@ -129,18 +212,10 @@ local function filter(input, env)
     end
 
     -- 获取当前语言上下文
-    local recent = env.filter_state.recent_committed or ""
     if context then
-        local commit_text = context:get_commit_text()
-        if commit_text and commit_text ~= "" then
-            recent = recent .. commit_text
-            env.filter_state.recent_committed = recent
-            if #recent > 200 then
-                env.filter_state.recent_committed = recent:sub(-200)
-                recent = env.filter_state.recent_committed
-            end
-        end
+        sync_commit_state(env, context)
     end
+    local recent = env.filter_state.recent_committed or ""
 
     local lang_context = detector.detect_language_context(recent)
     local current_input = context and context.input or ""
@@ -175,17 +250,7 @@ local function filter(input, env)
         local token_type = detector.classify_token(cand.text)
         if token_type == detector.TOKEN_TECH_TERM then
             if cand.comment == "" or cand.comment == nil then
-                -- 注：Rime 的 Candidate comment 可能不可直接修改
-                -- 此处创建新候选添加 comment
-                local new_cand = Candidate(
-                    cand.type,
-                    cand.start,
-                    cand._end,
-                    cand.text,
-                    "⚙"  -- 技术术语标记
-                )
-                new_cand.quality = cand.quality
-                yield(new_cand)
+                yield(wrap_candidate(cand, cand.text, "⚙"))
             else
                 yield(cand)
             end
@@ -195,4 +260,12 @@ local function filter(input, env)
     end
 end
 
-return { init = init, func = filter }
+local function fini(env)
+    if env.commit_notifier and env.commit_notifier.disconnect then
+        pcall(function()
+            env.commit_notifier:disconnect()
+        end)
+    end
+end
+
+return { init = init, func = filter, fini = fini }

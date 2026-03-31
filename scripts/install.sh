@@ -94,9 +94,13 @@ echo -e "${GREEN}  ✓ 备份完成: $BACKUP_DIR${NC}"
 echo -e "${YELLOW}[4/6]${NC} 安装 Schema 配置..."
 
 # 复制 schema 文件到 Rime 目录
-# 包括 hybrid_ime 配置和依赖方案 (melt_eng 等)
+# 当前稳定版直接复用官方 luna_pinyin 作为中文主词库，
+# 暂不安装实验性的 hybrid_ime.dict.yaml，避免大词库中的脏数据破坏部署。
 for yaml_file in "$PROJECT_DIR/schema/"*.yaml; do
     if [ -f "$yaml_file" ]; then
+        if [ "$(basename "$yaml_file")" = "hybrid_ime.dict.yaml" ]; then
+            continue
+        fi
         cp "$yaml_file" "$RIME_DIR/"
         echo -e "  安装: $(basename "$yaml_file")"
     fi
@@ -112,6 +116,28 @@ echo -e "${YELLOW}[5/6]${NC} 安装 Lua 脚本和词典..."
 mkdir -p "$RIME_DIR/lua"
 cp "$PROJECT_DIR/lua/"*.lua "$RIME_DIR/lua/"
 echo -e "  ✓ Lua 脚本已安装"
+
+# 构建原生光标左移 helper，避免 Shift+符号时退化为 Shift+Left 选中
+mkdir -p "$RIME_DIR/bin"
+if command -v clang >/dev/null 2>&1; then
+    if [ -f "$PROJECT_DIR/scripts/hybrid_cursor_left.m" ]; then
+        clang \
+            "$PROJECT_DIR/scripts/hybrid_cursor_left.m" \
+            -framework AppKit \
+            -framework ApplicationServices \
+            -o "$RIME_DIR/bin/hybrid_cursor_left" >/dev/null 2>&1 || true
+    else
+        clang \
+            "$PROJECT_DIR/scripts/hybrid_cursor_left.c" \
+            -framework ApplicationServices \
+            -o "$RIME_DIR/bin/hybrid_cursor_left" >/dev/null 2>&1 || true
+    fi
+fi
+if [ -x "$RIME_DIR/bin/hybrid_cursor_left" ]; then
+    echo -e "  ✓ 光标移动 helper 已安装"
+else
+    echo -e "  ${YELLOW}⚠ 光标移动 helper 构建失败，将回退到 osascript${NC}"
+fi
 
 # 创建 rime.lua 入口（如果不存在）
 if [ ! -f "$RIME_DIR/rime.lua" ]; then
@@ -132,17 +158,15 @@ else
     fi
 fi
 
-# 复制自定义词典
-mkdir -p "$RIME_DIR/dicts"
-cp "$PROJECT_DIR/dicts/"*.yaml "$RIME_DIR/dicts/" 2>/dev/null || true
-cp "$PROJECT_DIR/dicts/"*.txt "$RIME_DIR/dicts/" 2>/dev/null || true
-echo -e "  ✓ 词典文件已安装"
+# 当前稳定版不安装自定义中文大词库和混合短语词库，
+# 先确保中文候选基于官方词典稳定工作。
 
-# 复制中文词库（如果存在）
-if [ -d "$PROJECT_DIR/cn_dicts" ]; then
-    mkdir -p "$RIME_DIR/cn_dicts"
-    cp -r "$PROJECT_DIR/cn_dicts/"* "$RIME_DIR/cn_dicts/" 2>/dev/null || true
-    echo -e "  ✓ 中文词库已安装"
+# 安装安全的小型开发词典（不包含实验性中文大词库）
+if [ -d "$PROJECT_DIR/dicts" ]; then
+    mkdir -p "$RIME_DIR/dicts"
+    cp "$PROJECT_DIR/dicts/"*.dict.yaml "$RIME_DIR/dicts/" 2>/dev/null || true
+    cp "$PROJECT_DIR/dicts/"*.txt "$RIME_DIR/dicts/" 2>/dev/null || true
+    echo -e "  ✓ 开发词典已安装"
 fi
 
 # 复制英文词库（如果存在）
@@ -153,6 +177,14 @@ if [ -d "$PROJECT_DIR/en_dicts" ]; then
 fi
 
 echo -e "${GREEN}  ✓ 所有文件安装完成${NC}"
+
+# 如果本地模型 sidecar 服务已经安装，则同步刷新其 stub 代码
+if [ -f "$HOME/Library/LaunchAgents/com.hybridime.modeld.plist" ]; then
+    if [ -x "$PROJECT_DIR/scripts/install_model_sidecar_service.sh" ]; then
+        echo -e "  ✓ 检测到已安装的 sidecar 服务，正在刷新模型服务代码..."
+        bash "$PROJECT_DIR/scripts/install_model_sidecar_service.sh" >/dev/null 2>&1 || true
+    fi
+fi
 
 # ============================================================
 # 6. 触发重新部署

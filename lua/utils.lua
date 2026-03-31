@@ -104,7 +104,7 @@ end
 --- @param c string 单个字符
 --- @return boolean
 function M.is_convertible_punct(c)
-    local convertible = {",", ".", "?", "!", ":", ";"}
+    local convertible = {",", ".", "?", "!", ":", ";", "$", "(", ")", "<", ">", "\"", "'", "[", "]", "{", "}"}
     for _, p in ipairs(convertible) do
         if c == p then return true end
     end
@@ -302,13 +302,107 @@ M.punct_map = {
     ["!"] = "！",
     [":"] = "：",
     [";"] = "；",
+    ["$"] = "￥",
+    ["("] = "（",
+    [")"] = "）",
+    ["<"] = "《",
+    [">"] = "》",
+    ["["] = "【",
+    ["]"] = "】",
+    ["{"] = "｛",
+    ["}"] = "｝",
 }
+
+M.quote_pair_map = {
+    ["\""] = { open = "“", close = "”" },
+    ["'"] = { open = "‘", close = "’" },
+}
+
+M.auto_pair_map = {
+    ["("] = { open = "(", close = ")" },
+    ["["] = { open = "[", close = "]" },
+    ["{"] = { open = "{", close = "}" },
+    ["\""] = { open = "\"", close = "\"" },
+    ["'"] = { open = "'", close = "'" },
+}
+
+M.chinese_auto_pair_map = {
+    ["（"] = "）",
+    ["【"] = "】",
+    ["｛"] = "｝",
+    ["《"] = "》",
+    ["“"] = "”",
+    ["‘"] = "’",
+}
+
+local function count_utf8_char(text, target)
+    local count = 0
+    for char in M.utf8_chars(text or "") do
+        if char == target then
+            count = count + 1
+        end
+    end
+    return count
+end
 
 --- 获取对应中文标点
 --- @param half_punct string 半角标点
+--- @param recent_text string|nil 近期已提交文本
 --- @return string|nil 对应的全角中文标点
-function M.get_chinese_punct(half_punct)
+function M.get_chinese_punct(half_punct, recent_text)
+    local quote_pair = M.quote_pair_map[half_punct]
+    if quote_pair then
+        local open_count = count_utf8_char(recent_text, quote_pair.open)
+        local close_count = count_utf8_char(recent_text, quote_pair.close)
+        if open_count <= close_count then
+            return quote_pair.open
+        end
+        return quote_pair.close
+    end
     return M.punct_map[half_punct]
+end
+
+--- 判断当前输入是否应该触发成对补全
+--- @param input_punct string 原始输入的半角符号
+--- @param output_punct string 最终要提交的单个符号
+--- @return boolean
+function M.should_auto_pair(input_punct, output_punct)
+    if not input_punct or not output_punct then
+        return false
+    end
+
+    if input_punct == "<" then
+        return output_punct == "《"
+    end
+
+    local ascii_pair = M.auto_pair_map[input_punct]
+    if ascii_pair and ascii_pair.open == output_punct then
+        return true
+    end
+
+    return M.chinese_auto_pair_map[output_punct] ~= nil
+end
+
+--- 根据当前开符号获取闭符号
+--- @param input_punct string 原始输入的半角符号
+--- @param output_punct string 最终要提交的开符号
+--- @return string|nil
+function M.get_pair_close(input_punct, output_punct)
+    if not input_punct or not output_punct then
+        return nil
+    end
+
+    local chinese_close = M.chinese_auto_pair_map[output_punct]
+    if chinese_close then
+        return chinese_close
+    end
+
+    local ascii_pair = M.auto_pair_map[input_punct]
+    if ascii_pair and ascii_pair.open == output_punct then
+        return ascii_pair.close
+    end
+
+    return nil
 end
 
 -- ============================================================

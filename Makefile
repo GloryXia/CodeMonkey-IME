@@ -2,7 +2,7 @@
 # 开发专用输入法 — Makefile
 # ============================================================
 
-.PHONY: install uninstall deploy sync-dicts test clean help
+.PHONY: install uninstall deploy sync-dicts test clean help model-sidecar model-sidecar-health model-sidecar-service-install model-sidecar-service-uninstall model-sidecar-service-status model-sidecar-service-logs
 
 SHELL := /bin/bash
 RIME_DIR := $(HOME)/Library/Rime
@@ -39,6 +39,14 @@ test: ## 运行测试
 	@if command -v lua &> /dev/null; then \
 		lua tests/test_utils.lua && \
 		lua tests/test_context_detector.lua && \
+		lua tests/test_hybrid_processor.lua && \
+		lua tests/test_hybrid_filter.lua && \
+		lua tests/test_candidate_rerank_filter.lua && \
+		lua tests/test_model_feature_extractor.lua && \
+		lua tests/test_model_cache.lua && \
+		lua tests/test_model_logger.lua && \
+		lua tests/test_model_bridge.lua && \
+		lua tests/test_punctuation_processor.lua && \
 		echo "✓ 所有测试通过"; \
 	else \
 		echo "⚠ 未安装 Lua，跳过测试"; \
@@ -85,3 +93,26 @@ status: ## 检查安装状态
 		echo "  ✗ 中文词库 (未同步，运行 make sync-dicts)"; \
 	fi
 	@echo ""
+
+model-sidecar: ## 启动本地模型 sidecar stub
+	@chmod +x scripts/start_model_sidecar.sh
+	@bash scripts/start_model_sidecar.sh
+
+model-sidecar-health: ## 检查本地模型 sidecar stub 健康状态
+	@/usr/bin/curl --silent --show-error --fail http://127.0.0.1:39571/health || \
+		echo "⚠ sidecar 未启动"
+
+model-sidecar-service-install: ## 安装并启动 sidecar 的 launchd 用户服务
+	@chmod +x scripts/install_model_sidecar_service.sh
+	@bash scripts/install_model_sidecar_service.sh
+
+model-sidecar-service-uninstall: ## 卸载 sidecar 的 launchd 用户服务
+	@chmod +x scripts/uninstall_model_sidecar_service.sh
+	@bash scripts/uninstall_model_sidecar_service.sh
+
+model-sidecar-service-status: ## 查看 sidecar launchd 用户服务状态
+	@launchctl print gui/$$UID/com.hybridime.modeld
+
+model-sidecar-service-logs: ## 查看 sidecar 服务日志
+	@tail -n 50 "$(HOME)/Library/Rime/modeld/model_sidecar.stdout.log" 2>/dev/null || true
+	@tail -n 50 "$(HOME)/Library/Rime/modeld/model_sidecar.stderr.log" 2>/dev/null || true

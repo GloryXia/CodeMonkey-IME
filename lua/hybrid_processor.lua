@@ -5,15 +5,119 @@
 
 local utils = require("utils")
 local detector = require("context_detector")
+local model_bridge = require("model_bridge")
+local runtime_state = require("hybrid_runtime_state")
 
 local kRejected = 0
 local kAccepted = 1
+local kNoop = 2
+
+local PROP_LAST_COMMITTED_TEXT = "hybrid_last_committed_text"
+local PROP_LAST_COMMITTED_CHAR = "hybrid_last_committed_char"
+local PROP_LAST_SYNCED_TEXT = "hybrid_last_synced_commit_text"
+local PROP_RECENT_COMMITTED = "hybrid_recent_committed"
+
+local record_commit
+
+local function ensure_shared_state(env)
+    local shared_state = runtime_state.ensure()
+    env.hybrid_state = shared_state
+    return shared_state
+end
+
+local function read_context_property(context, name)
+    if not context or not context.get_property then
+        return nil
+    end
+    local ok, value = pcall(function()
+        return context:get_property(name)
+    end)
+    if ok then
+        return value
+    end
+    return nil
+end
+
+local function write_context_property(context, name, value)
+    if not context or not context.set_property then
+        return
+    end
+    pcall(function()
+        context:set_property(name, value or "")
+    end)
+end
+
+local function hydrate_state_from_context(env, context)
+    local shared_state = ensure_shared_state(env)
+    local last_text = read_context_property(context, PROP_LAST_COMMITTED_TEXT)
+    local last_char = read_context_property(context, PROP_LAST_COMMITTED_CHAR)
+    local last_synced = read_context_property(context, PROP_LAST_SYNCED_TEXT)
+    local recent = read_context_property(context, PROP_RECENT_COMMITTED)
+
+    if last_text and last_text ~= "" then
+        shared_state.last_committed_text = last_text
+    end
+    if last_char and last_char ~= "" then
+        shared_state.last_committed_char = last_char
+    end
+    if last_synced and last_synced ~= "" then
+        shared_state.last_synced_commit_text = last_synced
+    end
+    if recent and recent ~= "" then
+        shared_state.recent_committed = recent
+    end
+end
+
+local function latest_commit_text(context)
+    if not context then
+        return ""
+    end
+
+    local commit_text = context:get_commit_text() or ""
+    if commit_text ~= "" then
+        return commit_text
+    end
+
+    local history = context.commit_history
+    if history and history.latest_text then
+        local ok, text = pcall(function()
+            return history:latest_text()
+        end)
+        if ok and text and text ~= "" then
+            return text
+        end
+    end
+
+    return ""
+end
+
+local function sync_commit_state(env, context, source)
+    if not context then
+        return ""
+    end
+
+    local commit_text = latest_commit_text(context)
+    if commit_text and commit_text ~= ""
+        and commit_text ~= env.hybrid_state.last_synced_commit_text then
+        record_commit(env, commit_text, source or "candidate")
+        return commit_text
+    end
+
+    return commit_text or ""
+end
 
 -- ============================================================
 -- 初始化
 -- ============================================================
 
 local function init(env)
+    local context = env.engine and env.engine.context
+    if context then
+        -- 这套方案依赖混合候选来处理中英输入。
+        -- 初始化时强制回到中文组合态，避免残留的 ASCII passthrough 直接吞掉候选框。
+        context:set_option("ascii_mode", false)
+    end
+
     -- 跟踪已提交的文本历史
     env.commit_history = {}      -- 最近的提交记录列表
     env.max_history = 20         -- 保留最近 20 条
@@ -22,12 +126,16 @@ local function init(env)
     env.undo_stack = {}
 
     -- 共享状态（与其他 Lua 模块共享）
-    env.hybrid_state = {
-        last_committed_char = nil,
-        recent_committed = "",
-        is_protected = false,
-        current_app = nil,
-    }
+    ensure_shared_state(env)
+    hydrate_state_from_context(env, context)
+
+    model_bridge.init(env)
+
+    if context and context.commit_notifier and context.commit_notifier.connect then
+        env.commit_notifier = context.commit_notifier:connect(function()
+            sync_commit_state(env, env.engine and env.engine.context or context, "candidate")
+        end)
+    end
 end
 
 -- ============================================================
@@ -35,8 +143,9 @@ end
 -- ============================================================
 
 --- 记录一次提交
-local function record_commit(env, text, source)
+record_commit = function(env, text, source)
     if not text or text == "" then return end
+    local context = env.engine and env.engine.context or nil
 
     table.insert(env.commit_history, {
         text = text,
@@ -51,6 +160,8 @@ local function record_commit(env, text, source)
 
     -- 更新最后提交字符
     env.hybrid_state.last_committed_char = utils.utf8_last_char(text)
+    env.hybrid_state.last_committed_text = text
+    env.hybrid_state.last_synced_commit_text = text
 
     -- 更新近期提交文本
     env.hybrid_state.recent_committed =
@@ -59,6 +170,18 @@ local function record_commit(env, text, source)
         env.hybrid_state.recent_committed =
             env.hybrid_state.recent_committed:sub(-200)
     end
+
+    write_context_property(context, PROP_LAST_COMMITTED_TEXT, env.hybrid_state.last_committed_text)
+    write_context_property(context, PROP_LAST_COMMITTED_CHAR, env.hybrid_state.last_committed_char)
+    write_context_property(context, PROP_LAST_SYNCED_TEXT, env.hybrid_state.last_synced_commit_text)
+    write_context_property(context, PROP_RECENT_COMMITTED, env.hybrid_state.recent_committed)
+
+    model_bridge.record_commit(env, {
+        text = text,
+        source = source or "normal",
+        recent_committed = env.hybrid_state.recent_committed,
+        last_commit_text = env.hybrid_state.last_committed_text,
+    })
 end
 
 -- ============================================================
@@ -151,7 +274,7 @@ end
 local function processor(key_event, env)
     -- 只处理按下事件
     if key_event:release() then
-        return kRejected
+        return kNoop
     end
 
     local context = env.engine.context
@@ -197,10 +320,7 @@ local function processor(key_event, env)
     -- 监听提交事件：当候选被选中上屏时
     -- ========================================
     if context then
-        local commit_text = context:get_commit_text()
-        if commit_text and commit_text ~= "" then
-            record_commit(env, commit_text, "candidate")
-        end
+        sync_commit_state(env, context, "candidate")
     end
 
     -- ========================================
@@ -218,7 +338,15 @@ local function processor(key_event, env)
     end
 
     -- 不拦截其他按键，仅管理状态
-    return kRejected
+    return kNoop
 end
 
-return { init = init, func = processor }
+local function fini(env)
+    if env.commit_notifier and env.commit_notifier.disconnect then
+        pcall(function()
+            env.commit_notifier:disconnect()
+        end)
+    end
+end
+
+return { init = init, func = processor, fini = fini }
