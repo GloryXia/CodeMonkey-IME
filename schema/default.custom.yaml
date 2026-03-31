@@ -1,5 +1,5 @@
 # default.custom.yaml
-# 全局配置覆盖：注册 开发专用输入法 方案
+# 全局配置覆盖：注册 程序猿输入法 方案
 
 patch:
   schema_list:

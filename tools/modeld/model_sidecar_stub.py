@@ -279,7 +279,7 @@ class StubHandler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="DevCn-IME local model stub")
+    parser = argparse.ArgumentParser(description="CodeMonkey IME local model stub")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=39571)
     args = parser.parse_args()

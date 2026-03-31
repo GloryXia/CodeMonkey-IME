@@ -1,15 +1,15 @@
-# 开发专用输入法 — 开发专用输入法主方案
-# 面向开发者的上下文感知中英开发专用输入法
-# https://github.com/GloryXia/DevCn-IME
+# 程序猿输入法 — 程序猿输入法主方案
+# 面向开发者的上下文感知中英程序猿输入法
+# https://github.com/GloryXia/CodeMonkey-IME
 
 schema:
   schema_id: hybrid_ime
-  name: "开发专用输入法"
+  name: "程序猿输入法"
   version: "1.0.0"
   author:
-    - "开发专用输入法 Contributors"
+    - "程序猿输入法 Contributors"
   description: |
-    面向开发者的中英开发专用输入法。
+    面向开发者的中英程序猿输入法。
     支持上下文感知的标点智能决策、自动空格、混合候选重排。
     基于 Rime 引擎，通过 Lua 扩展实现核心逻辑。
   dependencies:
@@ -31,7 +31,7 @@ switches:
   - name: simplification
     reset: 1
     states: ["繁体", "简体"]
-  # ---- 开发专用输入法 自定义开关 ----
+  # ---- 程序猿输入法 自定义开关 ----
   - name: hybrid_mode
     reset: 1
     states: ["标准模式", "混合模式"]
@@ -206,7 +206,7 @@ key_binder:
     - {accept: comma, send: Page_Up, when: paging}
     - {accept: period, send: Page_Down, when: has_menu}
 
-    # --- 开发专用输入法 专用快捷键 ---
+    # --- 程序猿输入法 专用快捷键 ---
     # Ctrl+Shift+1: 切换混合模式
     - {accept: "Control+Shift+1", toggle: hybrid_mode, when: always}
     # Ctrl+Shift+2: 切换标点智能

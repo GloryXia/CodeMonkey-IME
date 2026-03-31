@@ -1,4 +1,4 @@
-# 开发专用输入法 — 开发专用输入法
+# 程序猿输入法 — 程序猿输入法
 
 > 为开发者设计的中英混合表达输入法
 
@@ -38,12 +38,12 @@
 brew install --cask squirrel
 ```
 
-### 安装 开发专用输入法
+### 安装 程序猿输入法
 
 ```bash
 # 克隆仓库
-git clone https://github.com/GloryXia/DevCn-IME.git
-cd DevCn-IME
+git clone https://github.com/GloryXia/CodeMonkey-IME.git
+cd CodeMonkey IME
 
 # 同步词库（首次安装需要）
 make sync-dicts
@@ -54,7 +54,7 @@ make install
 
 安装完成后：
 1. 在系统设置 → 键盘 → 输入法 中添加 Squirrel
-2. 按 `Ctrl+`` 或 `F4` 选择「开发专用输入法」
+2. 按 `Ctrl+`` 或 `F4` 选择「程序猿输入法」
 
 ## ⌨️ 快捷键
 
@@ -199,7 +199,7 @@ make model-sidecar-service-uninstall
 ## 📁 项目结构
 
 ```
-DevCn-IME/
+CodeMonkey IME/
 ├── schema/                 # Rime 方案配置
 │   ├── hybrid_ime.schema.yaml
 │   ├── hybrid_ime.dict.yaml

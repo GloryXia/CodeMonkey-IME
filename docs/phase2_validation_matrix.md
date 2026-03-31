@@ -18,7 +18,7 @@
 
 ## 手工验收
 
-使用 Squirrel 的“开发专用输入法”，保持 `hybrid_mode` 开启。
+使用 Squirrel 的“程序猿输入法”，保持 `hybrid_mode` 开启。
 
 ### 候选框稳定性
 
