@@ -42,8 +42,8 @@ brew install --cask squirrel
 
 ```bash
 # 克隆仓库
-git clone https://github.com/GloryXia/Dev-IME.git
-cd Dev-IME
+git clone https://github.com/GloryXia/DevCn-IME.git
+cd DevCn-IME
 
 # 同步词库（首次安装需要）
 make sync-dicts
@@ -199,7 +199,7 @@ make model-sidecar-service-uninstall
 ## 📁 项目结构
 
 ```
-Dev-IME/
+DevCn-IME/
 ├── schema/                 # Rime 方案配置
 │   ├── hybrid_ime.schema.yaml
 │   ├── hybrid_ime.dict.yaml

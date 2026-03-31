@@ -1,6 +1,6 @@
 # 开发专用输入法 — 开发专用输入法主方案
 # 面向开发者的上下文感知中英开发专用输入法
-# https://github.com/GloryXia/Dev-IME
+# https://github.com/GloryXia/DevCn-IME
 
 schema:
   schema_id: hybrid_ime
