@@ -255,4 +255,4 @@ MIT License
 
 - [Rime 输入法引擎](https://rime.im/)
 - [雾凇拼音 (rime-ice)](https://github.com/iDvel/rime-ice) — 词库来源
-- [librime-lua](https://github.com/hchunhui/librime-lua) — Lua 扩展支
+- [librime-lua](https://github.com/hchunhui/librime-lua) — Lua 扩展支持
